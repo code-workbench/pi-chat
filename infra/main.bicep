@@ -67,7 +67,7 @@ module functionApp './modules/functionApp.bicep' = {
   params: {
     location: location
     functionAppName: '${resourceSuffix}-func'
-    serviceBusConnectionString: serviceBus.outputs.serviceBusConnectionString
+    serviceBusNamespace: serviceBus.outputs.serviceBusNamespaceFqdn
     serviceBusQueueName: 'requests'
   }
 }
@@ -89,6 +89,15 @@ module roleAssignment './modules/roleAssignment.bicep' = {
   params: {
     containerRegistryName: containerRegistry.outputs.containerRegistryName
     principalId: appService.outputs.appServicePrincipalId
+  }
+}
+
+// Role assignment for Function App to send messages to Service Bus
+module serviceBusRoleAssignment './modules/serviceBusRoleAssignment.bicep' = {
+  name: 'serviceBusRoleAssignment'
+  params: {
+    serviceBusNamespaceName: serviceBus.outputs.serviceBusNamespaceName
+    principalId: functionApp.outputs.functionAppPrincipalId
   }
 }
 
@@ -122,7 +131,7 @@ output appServiceName string = appService.outputs.appServiceName
 output appServiceUrl string = appService.outputs.appServiceUrl
 output functionAppName string = functionApp.outputs.functionAppName
 output functionAppUrl string = functionApp.outputs.functionAppUrl
-output serviceBusNamespace string = serviceBus.outputs.serviceBusNamespace
+output serviceBusNamespace string = serviceBus.outputs.serviceBusNamespaceName
 output openAIName string = openAI.outputs.openAIName
 output openAIEndpoint string = openAI.outputs.openAIEndpoint
 output openAIDeploymentName string = openAI.outputs.deploymentName

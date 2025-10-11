@@ -4,9 +4,8 @@ param location string
 @description('The name of the function app')
 param functionAppName string
 
-@description('The service bus connection string')
-@secure()
-param serviceBusConnectionString string
+@description('The fully qualified namespace of the service bus')
+param serviceBusNamespace string
 
 @description('The name of the service bus queue')
 param serviceBusQueueName string
@@ -42,6 +41,9 @@ resource functionApp 'Microsoft.Web/sites@2022-09-01' = {
   name: functionAppName
   location: location
   kind: 'functionapp'
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
@@ -67,8 +69,8 @@ resource functionApp 'Microsoft.Web/sites@2022-09-01' = {
           value: 'python'
         }
         {
-          name: 'ServiceBusConnectionString'
-          value: serviceBusConnectionString
+          name: 'ServiceBusNamespace'
+          value: serviceBusNamespace
         }
         {
           name: 'ServiceBusQueueName'
@@ -85,3 +87,4 @@ resource functionApp 'Microsoft.Web/sites@2022-09-01' = {
 output functionAppName string = functionApp.name
 output functionAppUrl string = 'https://${functionApp.properties.defaultHostName}'
 output functionAppId string = functionApp.id
+output functionAppPrincipalId string = functionApp.identity.principalId

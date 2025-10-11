@@ -56,18 +56,6 @@ resource actionTopic 'Microsoft.ServiceBus/namespaces/topics@2022-10-01-preview'
   }
 }
 
-resource serviceBusAuthRule 'Microsoft.ServiceBus/namespaces/authorizationRules@2022-10-01-preview' = {
-  parent: serviceBusNamespace
-  name: 'RootManageSharedAccessKey'
-  properties: {
-    rights: [
-      'Listen'
-      'Manage'
-      'Send'
-    ]
-  }
-}
-
-output serviceBusNamespace string = serviceBusNamespace.name
-output serviceBusConnectionString string = serviceBusAuthRule.listKeys().primaryConnectionString
+output serviceBusNamespaceName string = serviceBusNamespace.name
+output serviceBusNamespaceFqdn string = '${serviceBusNamespace.name}.servicebus.windows.net'
 output serviceBusQueueName string = serviceBusQueue.name
