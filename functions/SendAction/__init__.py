@@ -3,6 +3,7 @@ import logging
 import os
 import azure.functions as func
 from azure.servicebus import ServiceBusClient, ServiceBusMessage
+from azure.identity import DefaultAzureCredential
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -35,18 +36,19 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             'ActionSpec': action_spec
         }
         
-        # Get Service Bus connection string from environment
-        connection_string = os.environ.get('ServiceBusConnectionString')
+        # Get Service Bus namespace from environment
+        service_bus_namespace = os.environ.get('ServiceBusNamespace')
         
-        if not connection_string:
-            logging.error('ServiceBusConnectionString not configured')
+        if not service_bus_namespace:
+            logging.error('ServiceBusNamespace not configured')
             return func.HttpResponse(
-                "Service Bus connection not configured",
+                "Service Bus namespace not configured",
                 status_code=500
             )
         
-        # Send message to Service Bus topic
-        with ServiceBusClient.from_connection_string(connection_string) as client:
+        # Send message to Service Bus topic using managed identity
+        credential = DefaultAzureCredential()
+        with ServiceBusClient(service_bus_namespace, credential) as client:
             with client.get_topic_sender(topic_name="Action") as sender:
                 message = ServiceBusMessage(json.dumps(action_request))
                 sender.send_messages(message)
