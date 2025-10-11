@@ -1,5 +1,6 @@
 # Bicep compiled files
-*.json
+infra/**/*.json
+!functions/**/*.json
 
 # Build artifacts
 dist/
