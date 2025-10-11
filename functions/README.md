@@ -103,12 +103,33 @@ func azure functionapp publish $FUNC_NAME
 
 ## Testing
 
-### Test GetTelemetry
+### Automated Testing
+
+Use the provided test scripts to test both endpoints:
+
+**Bash script:**
+```bash
+./test_endpoints.sh https://pichat-dev-func.azurewebsites.net <function-key>
+```
+
+**Python script:**
+```bash
+python test_endpoints.py https://pichat-dev-func.azurewebsites.net <function-key>
+```
+
+To get your function key:
+```bash
+FUNC_NAME=pichat-dev-func
+az functionapp keys list --name $FUNC_NAME --resource-group rg-pichat-dev --query functionKeys.default -o tsv
+```
+
+### Manual Testing with curl
+
+#### Test GetTelemetry
 
 ```bash
-curl -X POST https://<function-app>.azurewebsites.net/api/GetTelemetry \
+curl -X POST https://<function-app>.azurewebsites.net/api/GetTelemetry?code=<function-key> \
   -H "Content-Type: application/json" \
-  -H "x-functions-key: <function-key>" \
   -d '{
     "SensorKey": "sensor-001",
     "StartDate": "2025-01-01T00:00:00Z",
@@ -116,12 +137,11 @@ curl -X POST https://<function-app>.azurewebsites.net/api/GetTelemetry \
   }'
 ```
 
-### Test SendAction
+#### Test SendAction
 
 ```bash
-curl -X POST https://<function-app>.azurewebsites.net/api/SendAction \
+curl -X POST https://<function-app>.azurewebsites.net/api/SendAction?code=<function-key> \
   -H "Content-Type: application/json" \
-  -H "x-functions-key: <function-key>" \
   -d '{
     "ActionType": "turn_on",
     "ActionSpec": "{\"device\": \"led\", \"pin\": 17}"
