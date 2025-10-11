@@ -8,9 +8,6 @@ param functionAppName string
 @secure()
 param serviceBusConnectionString string
 
-@description('The name of the service bus queue')
-param serviceBusQueueName string
-
 var storageAccountName = replace('${functionAppName}sa', '-', '')
 var appServicePlanName = '${functionAppName}-plan'
 var storageAccountNameSafe = length(storageAccountName) > 24 ? substring(storageAccountName, 0, 24) : length(storageAccountName) < 3 ? '${storageAccountName}xxx' : storageAccountName
@@ -73,10 +70,6 @@ resource functionApp 'Microsoft.Web/sites@2022-09-01' = {
         {
           name: 'ServiceBusConnectionString'
           value: serviceBusConnectionString
-        }
-        {
-          name: 'ServiceBusQueueName'
-          value: serviceBusQueueName
         }
       ]
       ftpsState: 'Disabled'
