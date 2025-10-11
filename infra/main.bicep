@@ -29,7 +29,6 @@ module serviceBus './modules/serviceBus.bicep' = {
   params: {
     location: location
     serviceBusName: resourceSuffix
-    queueName: 'requests'
   }
 }
 
@@ -40,7 +39,6 @@ module functionApp './modules/functionApp.bicep' = {
     location: location
     functionAppName: '${resourceSuffix}-func'
     serviceBusConnectionString: serviceBus.outputs.serviceBusConnectionString
-    serviceBusQueueName: 'requests'
   }
 }
 
