@@ -14,6 +14,34 @@ param containerImageName string = 'chat-app:latest'
 
 var resourceSuffix = '${baseName}-${environmentName}'
 
+// Storage Account for AI Foundry Hub
+module aiStorage './modules/storageAccount.bicep' = {
+  name: 'aiStorage'
+  params: {
+    location: location
+    storageAccountName: replace('${resourceSuffix}ai', '-', '')
+  }
+}
+
+// Application Insights for AI Foundry Hub
+module appInsights './modules/applicationInsights.bicep' = {
+  name: 'appInsights'
+  params: {
+    location: location
+    appInsightsName: '${resourceSuffix}-ai-insights'
+    logAnalyticsName: '${resourceSuffix}-ai-logs'
+  }
+}
+
+// Key Vault for AI Foundry Hub
+module keyVault './modules/keyVault.bicep' = {
+  name: 'keyVault'
+  params: {
+    location: location
+    keyVaultName: replace('${resourceSuffix}-kv', '-', '')
+  }
+}
+
 // Azure Container Registry
 module containerRegistry './modules/containerRegistry.bicep' = {
   name: 'containerRegistry'
@@ -64,6 +92,29 @@ module roleAssignment './modules/roleAssignment.bicep' = {
   }
 }
 
+// Azure OpenAI Service
+module openAI './modules/openai.bicep' = {
+  name: 'openAI'
+  params: {
+    location: location
+    openAIName: '${resourceSuffix}-openai'
+  }
+}
+
+// Azure AI Foundry Hub
+module aiHub './modules/aiFoundryHub.bicep' = {
+  name: 'aiHub'
+  params: {
+    location: location
+    hubName: '${resourceSuffix}-ai-hub'
+    storageAccountId: aiStorage.outputs.storageAccountId
+    applicationInsightsId: appInsights.outputs.appInsightsId
+    containerRegistryId: containerRegistry.outputs.containerRegistryId
+    keyVaultId: keyVault.outputs.keyVaultId
+    openAIId: openAI.outputs.openAIId
+  }
+}
+
 // Outputs
 output containerRegistryName string = containerRegistry.outputs.containerRegistryName
 output containerRegistryLoginServer string = containerRegistry.outputs.containerRegistryLoginServer
@@ -72,3 +123,7 @@ output appServiceUrl string = appService.outputs.appServiceUrl
 output functionAppName string = functionApp.outputs.functionAppName
 output functionAppUrl string = functionApp.outputs.functionAppUrl
 output serviceBusNamespace string = serviceBus.outputs.serviceBusNamespace
+output openAIName string = openAI.outputs.openAIName
+output openAIEndpoint string = openAI.outputs.openAIEndpoint
+output openAIDeploymentName string = openAI.outputs.deploymentName
+output aiHubName string = aiHub.outputs.hubName
