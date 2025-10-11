@@ -56,6 +56,19 @@ resource actionTopic 'Microsoft.ServiceBus/namespaces/topics@2022-10-01-preview'
   }
 }
 
+resource telemetrySubscription 'Microsoft.ServiceBus/namespaces/topics/subscriptions@2022-10-01-preview' = {
+  parent: telemetryTopic
+  name: 'pi-telemetry-subscription'
+  properties: {
+    lockDuration: 'PT5M'
+    requiresSession: false
+    defaultMessageTimeToLive: 'P14D'
+    deadLetteringOnMessageExpiration: false
+    maxDeliveryCount: 10
+    enableBatchedOperations: true
+  }
+}
+
 output serviceBusNamespaceName string = serviceBusNamespace.name
 output serviceBusNamespaceFqdn string = '${serviceBusNamespace.name}.servicebus.windows.net'
 output serviceBusQueueName string = serviceBusQueue.name

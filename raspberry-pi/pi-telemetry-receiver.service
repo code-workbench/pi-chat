@@ -1,0 +1,21 @@
+[Unit]
+Description=Raspberry Pi Telemetry Receiver Service
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/opt/pi-telemetry-receiver
+Environment="PATH=/opt/pi-telemetry-receiver/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+EnvironmentFile=/opt/pi-telemetry-receiver/.env
+ExecStart=/opt/pi-telemetry-receiver/venv/bin/python3 /opt/pi-telemetry-receiver/telemetry_receiver.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pi-telemetry-receiver
+
+[Install]
+WantedBy=multi-user.target

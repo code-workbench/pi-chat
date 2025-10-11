@@ -140,6 +140,11 @@ Example for dev environment:
   - Max size: 1024 MB
   - Message TTL: 14 days
   - Batch operations: Enabled
+- **Subscriptions**:
+  - `pi-telemetry-subscription` on Telemetry topic
+    - For Raspberry Pi telemetry receiver
+    - Lock duration: 5 minutes
+    - Max delivery count: 10
 
 #### Azure OpenAI Service
 - **SKU**: S0
