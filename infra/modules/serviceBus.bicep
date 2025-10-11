@@ -34,6 +34,28 @@ resource serviceBusQueue 'Microsoft.ServiceBus/namespaces/queues@2022-10-01-prev
   }
 }
 
+resource telemetryTopic 'Microsoft.ServiceBus/namespaces/topics@2022-10-01-preview' = {
+  parent: serviceBusNamespace
+  name: 'Telemetry'
+  properties: {
+    maxSizeInMegabytes: 1024
+    requiresDuplicateDetection: false
+    defaultMessageTimeToLive: 'P14D'
+    enableBatchedOperations: true
+  }
+}
+
+resource actionTopic 'Microsoft.ServiceBus/namespaces/topics@2022-10-01-preview' = {
+  parent: serviceBusNamespace
+  name: 'Action'
+  properties: {
+    maxSizeInMegabytes: 1024
+    requiresDuplicateDetection: false
+    defaultMessageTimeToLive: 'P14D'
+    enableBatchedOperations: true
+  }
+}
+
 resource serviceBusAuthRule 'Microsoft.ServiceBus/namespaces/authorizationRules@2022-10-01-preview' = {
   parent: serviceBusNamespace
   name: 'RootManageSharedAccessKey'

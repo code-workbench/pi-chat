@@ -10,11 +10,13 @@ The infrastructure deploys the following Azure resources:
 2. **Azure App Service** - Hosts the containerized chat application
    - Connects to ACR via Managed Identity for secure image pulling
    - No credentials needed for registry authentication
-3. **Azure Function App** - Receives HTTP requests and forwards them to Service Bus
-   - Configured with Node.js runtime
+3. **Azure Function App** - Python-based MCP endpoints for telemetry and action requests
+   - Configured with Python runtime
    - Consumption (serverless) plan for cost efficiency
-4. **Azure Service Bus** - Message queue for async request processing
+   - Two HTTP endpoints: GetTelemetry and SendAction
+4. **Azure Service Bus** - Message broker for async request processing
    - Standard tier with a queue named 'requests'
+   - Topics: 'Telemetry' for sensor data and 'Action' for device commands
    - Connected to the Function App for message handling
 5. **Azure OpenAI Service** - Provides AI capabilities with GPT-4o-mini model
    - Deployed with gpt-4o-mini model for chat completions
@@ -117,20 +119,27 @@ Example for dev environment:
 
 #### Function App
 - **Plan**: Consumption (Y1)
-- **Runtime**: Node.js 18
+- **Runtime**: Python 3.x
 - **Functions Version**: 4
 - **Includes**: Storage account for function state
+- **Endpoints**:
+  - `GetTelemetry`: Receives telemetry requests and sends to "Telemetry" topic
+  - `SendAction`: Receives action requests and sends to "Action" topic
 - **Environment Variables**:
   - `ServiceBusConnectionString`: Connection to Service Bus
   - `ServiceBusQueueName`: Name of the queue to send messages to
 
 #### Service Bus
 - **Tier**: Standard
-- **Queue Properties**:
+- **Queue**: `requests`
   - Lock duration: 5 minutes
   - Max size: 1024 MB
   - Message TTL: 14 days
   - Max delivery count: 10
+- **Topics**: `Telemetry` and `Action`
+  - Max size: 1024 MB
+  - Message TTL: 14 days
+  - Batch operations: Enabled
 
 #### Azure OpenAI Service
 - **SKU**: S0
@@ -204,6 +213,22 @@ az group delete --name rg-pichat-dev --yes --no-wait
 ## Next Steps
 
 1. Push a container image to the Container Registry
-2. Deploy Function App code to handle HTTP requests
+2. Deploy Python Function App code to handle MCP requests
+   - See [functions/README.md](../functions/README.md) for detailed documentation
+   - Deploy using: `func azure functionapp publish <function-app-name> --python`
 3. Configure the App Service to use the deployed container image
 4. Set up CI/CD pipeline for automated deployments
+
+## Function Endpoints
+
+The deployed Function App provides two MCP endpoints:
+
+- **GetTelemetry** (`POST /api/GetTelemetry`)
+  - Accepts telemetry requests with SensorKey, StartDate, EndDate
+  - Sends messages to Service Bus "Telemetry" topic
+  
+- **SendAction** (`POST /api/SendAction`)
+  - Accepts action requests with ActionType and ActionSpec
+  - Sends messages to Service Bus "Action" topic
+
+For detailed API documentation and testing examples, see [functions/README.md](../functions/README.md).

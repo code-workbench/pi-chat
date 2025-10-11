@@ -56,9 +56,11 @@ az deployment group show \
 | App Service | `pichat-dev-app` | Runs the chat application |
 | Storage Account | `pichatdevfuncsa` | Required for Function App |
 | App Service Plan (Consumption) | `pichat-dev-func-plan` | Hosts the function |
-| Function App | `pichat-dev-func` | Processes HTTP requests |
+| Function App | `pichat-dev-func` | Python-based MCP endpoints |
 | Service Bus Namespace | `pichat-dev` | Message broker |
 | Service Bus Queue | `requests` | Stores messages |
+| Service Bus Topic | `Telemetry` | Telemetry data routing |
+| Service Bus Topic | `Action` | Action command routing |
 | OpenAI Service | `pichat-dev-openai` | AI model service (gpt-4o-mini) |
 | AI Foundry Hub | `pichat-dev-ai-hub` | Machine learning workspace |
 | Storage Account (AI) | `pichatdevai` | Storage for AI Hub |
@@ -92,9 +94,16 @@ FUNC_NAME=$(az deployment group show \
   --name main \
   --query properties.outputs.functionAppName.value -o tsv)
 
-# Deploy your function code (example with zip)
-func azure functionapp publish $FUNC_NAME
+# Navigate to functions directory and deploy
+cd ../functions
+func azure functionapp publish $FUNC_NAME --python
 ```
+
+**Note:** The Function App includes two Python-based MCP endpoints:
+- **GetTelemetry**: Receives telemetry requests and sends them to the "Telemetry" Service Bus topic
+- **SendAction**: Receives action requests and sends them to the "Action" Service Bus topic
+
+See [functions/README.md](../functions/README.md) for detailed endpoint documentation and testing examples.
 
 ### 3. Restart App Service
 ```bash
