@@ -59,6 +59,12 @@ az deployment group show \
 | Function App | `pichat-dev-func` | Processes HTTP requests |
 | Service Bus Namespace | `pichat-dev` | Message broker |
 | Service Bus Queue | `requests` | Stores messages |
+| OpenAI Service | `pichat-dev-openai` | AI model service (gpt-4o-mini) |
+| AI Foundry Hub | `pichat-dev-ai-hub` | Machine learning workspace |
+| Storage Account (AI) | `pichatdevai` | Storage for AI Hub |
+| Application Insights | `pichat-dev-ai-insights` | Monitoring for AI resources |
+| Log Analytics Workspace | `pichat-dev-ai-logs` | Log aggregation |
+| Key Vault | `pichatdevkv` | Secure secrets storage |
 
 ## Next Steps After Deployment
 
@@ -116,6 +122,33 @@ az deployment group show \
   --resource-group rg-pichat-dev \
   --name main \
   --query properties.outputs.functionAppUrl.value -o tsv
+
+echo "OpenAI Endpoint:"
+az deployment group show \
+  --resource-group rg-pichat-dev \
+  --name main \
+  --query properties.outputs.openAIEndpoint.value -o tsv
+
+echo "AI Foundry Hub Name:"
+az deployment group show \
+  --resource-group rg-pichat-dev \
+  --name main \
+  --query properties.outputs.aiHubName.value -o tsv
+```
+
+### 5. Get OpenAI API Key
+```bash
+# Get OpenAI service name
+OPENAI_NAME=$(az deployment group show \
+  --resource-group rg-pichat-dev \
+  --name main \
+  --query properties.outputs.openAIName.value -o tsv)
+
+# Get the API key
+az cognitiveservices account keys list \
+  --name $OPENAI_NAME \
+  --resource-group rg-pichat-dev \
+  --query key1 -o tsv
 ```
 
 ## Troubleshooting

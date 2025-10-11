@@ -16,6 +16,17 @@ The infrastructure deploys the following Azure resources:
 4. **Azure Service Bus** - Message queue for async request processing
    - Standard tier with a queue named 'requests'
    - Connected to the Function App for message handling
+5. **Azure OpenAI Service** - Provides AI capabilities with GPT-4o-mini model
+   - Deployed with gpt-4o-mini model for chat completions
+   - Standard tier with customizable capacity
+6. **Azure AI Foundry Hub** - Machine learning workspace for AI operations
+   - Hub workspace for managing AI resources and projects
+   - Connected to OpenAI service, Container Registry, Key Vault, and Storage
+7. **Supporting Resources**:
+   - **Application Insights** - Monitoring and telemetry for AI Hub
+   - **Log Analytics Workspace** - Log aggregation for insights
+   - **Key Vault** - Secure storage for secrets and keys
+   - **Storage Account** - Required storage for AI Foundry Hub
 
 ## Prerequisites
 
@@ -86,6 +97,10 @@ Example for dev environment:
 - App Service: `pichat-dev-app`
 - Function App: `pichat-dev-func`
 - Service Bus: `pichat-dev`
+- OpenAI Service: `pichat-dev-openai`
+- AI Foundry Hub: `pichat-dev-ai-hub`
+- Key Vault: `pichatdevkv` (no hyphens allowed)
+- Storage Account: `pichatdevai` (no hyphens allowed)
 
 ### Resource Details
 
@@ -117,6 +132,39 @@ Example for dev environment:
   - Message TTL: 14 days
   - Max delivery count: 10
 
+#### Azure OpenAI Service
+- **SKU**: S0
+- **Kind**: OpenAI
+- **Model**: gpt-4o-mini (2024-07-18)
+- **Deployment**: Standard tier with configurable capacity (default: 10)
+- **Public Access**: Enabled
+
+#### Azure AI Foundry Hub
+- **SKU**: Basic
+- **Kind**: Hub (Machine Learning Workspace)
+- **Identity**: System-assigned managed identity
+- **Network**: Public access enabled
+- **Connections**: Integrated with OpenAI service
+- **Dependencies**: Storage Account, Application Insights, Container Registry, Key Vault
+
+#### Application Insights
+- **Type**: Web application monitoring
+- **Workspace**: Connected to Log Analytics workspace
+- **Retention**: 30 days
+
+#### Key Vault
+- **SKU**: Standard
+- **Authorization**: RBAC enabled
+- **Soft Delete**: Enabled with 7-day retention
+- **Public Access**: Enabled
+
+#### Storage Account (AI Hub)
+- **SKU**: Standard_LRS
+- **Kind**: StorageV2
+- **HTTPS Only**: Enforced
+- **TLS**: Minimum version 1.2
+- **Blob Public Access**: Disabled
+
 ## Module Structure
 
 ```
@@ -129,7 +177,12 @@ infra/
     ├── appService.bicep                # App Service module
     ├── functionApp.bicep               # Function App module
     ├── serviceBus.bicep                # Service Bus module
-    └── roleAssignment.bicep            # ACR role assignment module
+    ├── roleAssignment.bicep            # ACR role assignment module
+    ├── openai.bicep                    # Azure OpenAI Service module
+    ├── aiFoundryHub.bicep              # Azure AI Foundry Hub module
+    ├── applicationInsights.bicep       # Application Insights module
+    ├── keyVault.bicep                  # Key Vault module
+    └── storageAccount.bicep            # Storage Account module
 ```
 
 ## Security
