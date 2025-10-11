@@ -1,8 +1,12 @@
-# Raspberry Pi Telemetry Receiver
+# Raspberry Pi Services
 
-A Python application that runs as a systemd service on a Raspberry Pi (Ubuntu 22.04) to receive and process telemetry requests from Azure Service Bus.
+Python applications that run as systemd services on a Raspberry Pi (Ubuntu 22.04) to communicate with Azure Service Bus.
 
-## Overview
+This directory contains two services:
+1. **Telemetry Receiver** - Receives and processes telemetry requests
+2. **Action Receiver** - Receives and processes action commands
+
+## Telemetry Receiver Overview
 
 This application connects to Azure Service Bus and listens to the "Telemetry" topic. When messages are received, it processes them based on the `SensorKey` field and executes the appropriate action.
 
@@ -14,16 +18,26 @@ Currently supports the following sensor types (placeholders for implementation):
 - **Light**: Processes light sensor telemetry requests  
 - **CPU**: Processes CPU metrics telemetry requests
 
+## Action Receiver Overview
+
+This application connects to Azure Service Bus and listens to the "Action" topic. When messages are received, it processes them based on the `ActionType` field and executes the appropriate action.
+
+### Supported Action Types
+
+Currently supports the following action types (placeholders for implementation):
+
+- **Camera**: Processes camera-related action commands (capture photo, start/stop video, adjust settings)
+
 ## Architecture
 
 ```
-Azure Function (GetTelemetry) 
-    ↓
-Service Bus Telemetry Topic
-    ↓
-Raspberry Pi Telemetry Receiver (this application)
-    ↓
-Local Sensor Reading / Action Execution
+Azure Function (GetTelemetry)          Azure Function (SendAction)
+    ↓                                      ↓
+Service Bus Telemetry Topic            Service Bus Action Topic
+    ↓                                      ↓
+Raspberry Pi Telemetry Receiver        Raspberry Pi Action Receiver
+    ↓                                      ↓
+Local Sensor Reading                   Local Action Execution
 ```
 
 ## Prerequisites
@@ -36,7 +50,7 @@ Local Sensor Reading / Action Execution
 
 ## Installation
 
-### Quick Install
+### Telemetry Receiver - Quick Install
 
 Run the automated installation script:
 
@@ -46,6 +60,21 @@ sudo ./install.sh
 
 This script will:
 1. Create installation directory at `/opt/pi-telemetry-receiver`
+2. Install Python dependencies
+3. Set up a Python virtual environment
+4. Install the systemd service
+5. Configure logging
+
+### Action Receiver - Quick Install
+
+Run the automated installation script:
+
+```bash
+sudo ./install_action_receiver.sh
+```
+
+This script will:
+1. Create installation directory at `/opt/pi-action-receiver`
 2. Install Python dependencies
 3. Set up a Python virtual environment
 4. Install the systemd service
@@ -96,6 +125,8 @@ If you prefer manual installation:
 
 ## Configuration
 
+### Telemetry Receiver Configuration
+
 Edit the configuration file at `/opt/pi-telemetry-receiver/.env`:
 
 ```bash
@@ -110,11 +141,29 @@ SERVICE_BUS_NAMESPACE=your-namespace.servicebus.windows.net
 SUBSCRIPTION_NAME=pi-telemetry-subscription
 ```
 
+### Action Receiver Configuration
+
+Edit the configuration file at `/opt/pi-action-receiver/.env`:
+
+```bash
+sudo nano /opt/pi-action-receiver/.env
+```
+
+Required configuration:
+
+```env
+# Azure Service Bus Configuration
+SERVICE_BUS_NAMESPACE=your-namespace.servicebus.windows.net
+ACTION_SUBSCRIPTION_NAME=pi-action-subscription
+```
+
 ### Azure Service Bus Setup
 
-Before running the application, you need to:
+Before running the applications, you need to:
 
-1. **Create a subscription on the Telemetry topic:**
+1. **Create subscriptions on the Service Bus topics:**
+   
+   For Telemetry Receiver:
    ```bash
    az servicebus topic subscription create \
      --resource-group rg-pichat-dev \
@@ -122,6 +171,17 @@ Before running the application, you need to:
      --topic-name Telemetry \
      --name pi-telemetry-subscription
    ```
+   
+   For Action Receiver:
+   ```bash
+   az servicebus topic subscription create \
+     --resource-group rg-pichat-dev \
+     --namespace-name pichat-dev \
+     --topic-name Action \
+     --name pi-action-subscription
+   ```
+   
+   **Note:** If using the infrastructure deployment from this repository, these subscriptions are automatically created.
 
 2. **Configure authentication:**
    
@@ -141,51 +201,74 @@ Before running the application, you need to:
 
 ## Usage
 
-### Start the Service
+### Telemetry Receiver
 
+**Start the Service:**
 ```bash
 sudo systemctl start pi-telemetry-receiver
 ```
 
-### Enable Auto-start on Boot
-
+**Enable Auto-start on Boot:**
 ```bash
 sudo systemctl enable pi-telemetry-receiver
 ```
 
-### Check Service Status
-
+**Check Service Status:**
 ```bash
 sudo systemctl status pi-telemetry-receiver
 ```
 
-### View Logs
-
-**View recent logs:**
+**View Logs:**
 ```bash
+# View recent logs
 sudo journalctl -u pi-telemetry-receiver -n 50
-```
 
-**Follow logs in real-time:**
-```bash
+# Follow logs in real-time
 sudo journalctl -u pi-telemetry-receiver -f
-```
 
-**View application log file:**
-```bash
+# View application log file
 sudo tail -f /var/log/pi-telemetry-receiver.log
 ```
 
-### Stop the Service
-
+**Stop/Restart the Service:**
 ```bash
 sudo systemctl stop pi-telemetry-receiver
+sudo systemctl restart pi-telemetry-receiver
 ```
 
-### Restart the Service
+### Action Receiver
 
+**Start the Service:**
 ```bash
-sudo systemctl restart pi-telemetry-receiver
+sudo systemctl start pi-action-receiver
+```
+
+**Enable Auto-start on Boot:**
+```bash
+sudo systemctl enable pi-action-receiver
+```
+
+**Check Service Status:**
+```bash
+sudo systemctl status pi-action-receiver
+```
+
+**View Logs:**
+```bash
+# View recent logs
+sudo journalctl -u pi-action-receiver -n 50
+
+# Follow logs in real-time
+sudo journalctl -u pi-action-receiver -f
+
+# View application log file
+sudo tail -f /var/log/pi-action-receiver.log
+```
+
+**Stop/Restart the Service:**
+```bash
+sudo systemctl stop pi-action-receiver
+sudo systemctl restart pi-action-receiver
 ```
 
 ## Testing
@@ -226,7 +309,7 @@ Messages received from the Service Bus have the following format:
 
 ### Adding New Sensor Types
 
-To add support for a new sensor type:
+To add support for a new sensor type in the telemetry receiver:
 
 1. Add a new processing method in `telemetry_receiver.py`:
    ```python
@@ -239,6 +322,23 @@ To add support for a new sensor type:
    ```python
    elif sensor_key == 'newsensor':
        self.process_newsensor_request(message_body)
+   ```
+
+### Adding New Action Types
+
+To add support for a new action type in the action receiver:
+
+1. Add a new processing method in `action_receiver.py`:
+   ```python
+   def process_newaction_action(self, message_body):
+       logger.info(f"Processing NEWACTION action: {message_body}")
+       # Implement action-specific logic here
+   ```
+
+2. Add a case in the `process_message` method:
+   ```python
+   elif action_type == 'newaction':
+       self.process_newaction_action(message_body)
    ```
 
 ### Local Development
@@ -299,11 +399,14 @@ sudo chown pi:pi /var/log/pi-telemetry-receiver.log
 
 ```
 raspberry-pi/
-├── telemetry_receiver.py          # Main application
-├── requirements.txt                # Python dependencies
+├── telemetry_receiver.py           # Telemetry receiver application
+├── action_receiver.py              # Action receiver application
+├── requirements.txt                # Python dependencies (shared)
 ├── .env.example                    # Example configuration file
-├── pi-telemetry-receiver.service   # Systemd service file
-├── install.sh                      # Installation script
+├── pi-telemetry-receiver.service   # Systemd service file for telemetry
+├── pi-action-receiver.service      # Systemd service file for actions
+├── install.sh                      # Telemetry receiver installation script
+├── install_action_receiver.sh      # Action receiver installation script
 └── README.md                       # This file
 ```
 

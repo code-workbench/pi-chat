@@ -1,0 +1,21 @@
+[Unit]
+Description=Raspberry Pi Action Receiver Service
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/opt/pi-action-receiver
+Environment="PATH=/opt/pi-action-receiver/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+EnvironmentFile=/opt/pi-action-receiver/.env
+ExecStart=/opt/pi-action-receiver/venv/bin/python3 /opt/pi-action-receiver/action_receiver.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pi-action-receiver
+
+[Install]
+WantedBy=multi-user.target

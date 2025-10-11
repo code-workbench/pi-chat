@@ -145,6 +145,10 @@ Example for dev environment:
     - For Raspberry Pi telemetry receiver
     - Lock duration: 5 minutes
     - Max delivery count: 10
+  - `pi-action-subscription` on Action topic
+    - For Raspberry Pi action receiver
+    - Lock duration: 5 minutes
+    - Max delivery count: 10
 
 #### Azure OpenAI Service
 - **SKU**: S0
