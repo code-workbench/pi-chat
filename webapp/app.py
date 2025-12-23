@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import secrets
 from flask import Flask, render_template, request, jsonify, session
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import (
@@ -9,6 +10,7 @@ from azure.ai.inference.models import (
     AssistantMessage,
     ChatCompletionsToolDefinition,
     FunctionDefinition,
+    ToolMessage,
 )
 from azure.core.credentials import AzureKeyCredential
 from azure.identity import DefaultAzureCredential
@@ -20,7 +22,8 @@ import requests
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
+# Use a secure random secret key if not provided in environment
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -230,7 +233,6 @@ def chat():
                     function_result = call_mcp_function(function_name, function_args)
                     
                     # Add function result to messages
-                    from azure.ai.inference.models import ToolMessage
                     messages.append(ToolMessage(
                         tool_call_id=tool_call.id,
                         content=json.dumps(function_result)

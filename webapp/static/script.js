@@ -1,3 +1,6 @@
+// Configuration
+const MAX_HISTORY_MESSAGES = 20;
+
 // Conversation history to maintain context
 let conversationHistory = [];
 
@@ -66,9 +69,9 @@ async function sendMessage() {
             content: data.response
         });
         
-        // Keep history manageable (last 20 messages)
-        if (conversationHistory.length > 20) {
-            conversationHistory = conversationHistory.slice(-20);
+        // Keep history manageable
+        if (conversationHistory.length > MAX_HISTORY_MESSAGES) {
+            conversationHistory = conversationHistory.slice(-MAX_HISTORY_MESSAGES);
         }
         
     } catch (error) {
