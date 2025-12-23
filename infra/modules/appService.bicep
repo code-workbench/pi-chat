@@ -10,6 +10,9 @@ param containerRegistryLoginServer string
 @description('The container image name')
 param containerImageName string
 
+@description('The Application Insights connection string')
+param applicationInsightsConnectionString string = ''
+
 var appServicePlanName = '${appServiceName}-plan'
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
@@ -37,7 +40,7 @@ resource appService 'Microsoft.Web/sites@2022-09-01' = {
     siteConfig: {
       linuxFxVersion: 'DOCKER|${containerRegistryLoginServer}/${containerImageName}'
       acrUseManagedIdentityCreds: true
-      appSettings: [
+      appSettings: concat([
         {
           name: 'DOCKER_REGISTRY_SERVER_URL'
           value: 'https://${containerRegistryLoginServer}'
@@ -46,7 +49,20 @@ resource appService 'Microsoft.Web/sites@2022-09-01' = {
           name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
           value: 'false'
         }
-      ]
+        {
+          name: 'PORT'
+          value: '8000'
+        }
+        {
+          name: 'WEBSITES_PORT'
+          value: '8000'
+        }
+      ], !empty(applicationInsightsConnectionString) ? [
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: applicationInsightsConnectionString
+        }
+      ] : [])
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
     }

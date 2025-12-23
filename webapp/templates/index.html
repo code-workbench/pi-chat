@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pi Chat - Azure AI Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Pi Chat</h1>
+            <p class="subtitle">Chat with Azure AI to control your Raspberry Pi</p>
+        </header>
+        
+        <div class="chat-container">
+            <div id="chat-messages" class="chat-messages">
+                <div class="message assistant-message">
+                    <div class="message-content">
+                        <strong>Assistant:</strong> Hello! I'm your AI assistant connected to a Raspberry Pi. I can help you:
+                        <ul>
+                            <li>🌡️ Get sensor readings (Temperature, Light, CPU)</li>
+                            <li>📸 Control devices (Camera, LEDs, etc.)</li>
+                            <li>💬 Answer questions about your system</li>
+                        </ul>
+                        Try asking me something like "What's the current temperature?" or "Take a picture with the camera"
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-container">
+                <textarea 
+                    id="user-input" 
+                    placeholder="Type your message here..." 
+                    rows="3"
+                    maxlength="2000"
+                ></textarea>
+                <button id="send-button" onclick="sendMessage()">
+                    <span id="send-icon">📤</span>
+                    <span id="send-text">Send</span>
+                </button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Powered by Azure AI Foundry | Connected to Raspberry Pi via MCP</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
