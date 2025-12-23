@@ -80,6 +80,7 @@ module appService './modules/appService.bicep' = {
     appServiceName: '${resourceSuffix}-app'
     containerRegistryLoginServer: containerRegistry.outputs.containerRegistryLoginServer
     containerImageName: containerImageName
+    applicationInsightsConnectionString: appInsights.outputs.appInsightsConnectionString
   }
 }
 
@@ -136,3 +137,4 @@ output openAIName string = openAI.outputs.openAIName
 output openAIEndpoint string = openAI.outputs.openAIEndpoint
 output openAIDeploymentName string = openAI.outputs.deploymentName
 output aiHubName string = aiHub.outputs.hubName
+output appInsightsConnectionString string = appInsights.outputs.appInsightsConnectionString
